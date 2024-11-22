@@ -1,6 +1,3 @@
-# Databricks notebook source
-!pip install -r ../requirements.txt
-
 # COMMAND ----------
 
 import requests
@@ -25,7 +22,13 @@ url = "https://"+server_h+"/api/2.0"
 
 def perform_query(path, headers, data={}):
     session = requests.Session()
-    resp = session.request('POST', url + path, data=json.dumps(data), verify=True, headers=headers)
+    resp = session.request(
+    "POST",
+    url + path,
+    data=json.dumps(data),
+    verify=True,
+    headers=headers,
+    )
     return resp.json()
 
 def mkdirs(path, headers):
@@ -51,7 +54,9 @@ def put_file_from_url(url, dbfs_path, overwrite, headers):
         handle = create(dbfs_path, overwrite, headers=headers)['handle']
         print(f"Uploading file: {dbfs_path}")
         for i in range(0, len(content), 2**20):
-            add_block(handle, base64.standard_b64encode(content[i:i+2**20]).decode(), headers=headers)
+            add_block(handle, 
+                      base64.standard_b64encode(content[i:i+2**20]).decode(), 
+                      headers=headers)
         close(handle, headers=headers)
         print(f"File {dbfs_path} uploaded successfully.")
     else:
@@ -64,12 +69,21 @@ STUDENT_LIFESTYLE_URL = "https://raw.githubusercontent.com/ailina-aniwan/Ailina_
 STUDENT_LIFESTYLE_DBFS_PATH = FILESTORE_PATH + "/student_lifestyle_dataset.csv"
 
 mkdirs(path=FILESTORE_PATH, headers=headers)
-put_file_from_url(STUDENT_LIFESTYLE_URL, STUDENT_LIFESTYLE_DBFS_PATH, overwrite=True, headers=headers)
+put_file_from_url(
+    STUDENT_LIFESTYLE_URL,
+    STUDENT_LIFESTYLE_DBFS_PATH,
+    overwrite=True,
+    headers=headers,
+)
 
 # COMMAND ----------
 
 spark = SparkSession.builder.appName("Test Extract").getOrCreate()
-student_lifestyle_df = spark.read.csv(STUDENT_LIFESTYLE_DBFS_PATH, header=True, inferSchema=True)
+student_lifestyle_df = spark.read.csv(
+    STUDENT_LIFESTYLE_DBFS_PATH,
+    header=True,
+    inferSchema=True,
+)
 
 student_lifestyle_df.show()
 print(f"Number of rows: {student_lifestyle_df.count()}")
